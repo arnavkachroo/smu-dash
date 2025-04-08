@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model AchievementLog {
+  Log_ID         Int       @id @default(autoincrement())
+  Achievement_ID Int?
+  Old_Grade      Float?    @db.Float
+  New_Grade      Float?    @db.Float
+  ChangeTime     DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model Courses {
+  Course_ID   Int     @id @default(autoincrement())
+  CourseName  String? @db.VarChar(100)
+  CourseCode  String? @db.VarChar(20)
+  ProfessorID Int?
+}
+
+model GroupMembers {
+  Member_ID    Int     @id @default(autoincrement())
+  Group_ID     Int?
+  Student_ID   Int?
+  Student_name String? @db.VarChar(50)
+}
+
+model Groups {
+  Group_ID  Int     @id @default(autoincrement())
+  GroupName String? @db.VarChar(250)
+  Course_ID Int?
+}
+
+model LearningOutcomes {
+  Outcome_ID          Int     @id @default(autoincrement())
+  Outcome_description String? @db.VarChar(1250)
+  Outcome_name        String? @db.VarChar(100)
+}
+
+model ScheduledEvaluation {
+  scheduled_eval_id     Int       @id @default(autoincrement())
+  Course_ID             Int?
+  ScheduleDate_Assigned DateTime? @db.DateTime(0)
+  ScheduledDate_Due     DateTime? @db.DateTime(0)
+}
+
+model StudentAchievements {
+  Achievement_ID Int       @id @default(autoincrement())
+  Evaluation_ID  Int?
+  Outcome_ID     Int?
+  Grade          Float?    @db.Float
+  Last_update    DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model SubmitEvaluation {
+  Evaluation_ID     Int       @id @default(autoincrement())
+  SubmissionDate    DateTime? @db.DateTime(0)
+  Evaluator_ID      Int?
+  Evaluatee_ID      Int?
+  Grade             Float?    @db.Float
+  scheduled_eval_id Int?
+  Comments          String?   @db.Text
+}
+
+model Users {
+  UserID    Int         @id @default(autoincrement())
+  FirstName String?     @db.VarChar(100)
+  LastName  String?     @db.VarChar(100)
+  Email     String?     @unique(map: "Email") @db.VarChar(100)
+  Role      Users_Role?
+  password  String?     @db.VarChar(300)
+}
+
+enum Users_Role {
+  student
+  professor
+}
