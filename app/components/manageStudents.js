@@ -6,51 +6,69 @@ const ManageStudents = () => {
     const [classes, setClasses] = useState([]);
     const [selectedClassId, setSelectedClassId] = useState("");
     const [students, setStudents] = useState([]);
-    const [form, setForm] = useState({ UserID: "", FirstName: "", LastName: "", Email: "" });
+    const [form, setForm] = useState({ FirstName: "", LastName: "", Email: "" });
     const [message, setMessage] = useState("");
 
-    // Fetch list of classes from API
     useEffect(() => {
         const fetchClasses = async () => {
             try {
                 const res = await fetch("/api/courses/students");
                 const data = await res.json();
-                console.log("Classes:", data);
                 setClasses(Array.isArray(data) ? data : []);
             } catch (err) {
                 console.error("Error fetching classes:", err);
-                setClasses([]);
             }
         };
 
         fetchClasses();
     }, []);
 
-    // Fetch students in selected class
     useEffect(() => {
+        if (!selectedClassId) return;
+
         const fetchStudents = async () => {
-            if (!selectedClassId) return;
-            const res = await fetch(`/api/courses/students?courseId=${selectedClassId}`);
-            const data = await res.json();
-            setStudents(Array.isArray(data) ? data : []);
+            try {
+                const res = await fetch(`/api/courses/students?courseId=${selectedClassId}`);
+                const data = await res.json();
+                setStudents(Array.isArray(data) ? data : []);
+            } catch (err) {
+                console.error("Error fetching students:", err);
+            }
         };
 
         fetchStudents();
     }, [selectedClassId]);
 
-    // Handle form submission to add student
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        const payload = {
+            ...form,
+            Course_ID: parseInt(selectedClassId),
+        };
+
         const res = await fetch("/api/courses/students", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(form),
+            body: JSON.stringify(payload),
         });
 
         const data = await res.json();
+
         if (res.ok) {
             setMessage("Student added successfully!");
-            setForm({ UserID: "", FirstName: "", LastName: "", Email: "" });
+            setForm({ FirstName: "", LastName: "", Email: "" });
+
+            // ✅ Immediately show new student in UI
+            setStudents((prev) => [
+                ...prev,
+                {
+                    UserID: data.student.UserID,
+                    FirstName: data.student.FirstName,
+                    LastName: data.student.LastName,
+                    Email: data.student.Email,
+                },
+            ]);
         } else {
             setMessage(data.error || "Failed to add student.");
         }
@@ -58,7 +76,7 @@ const ManageStudents = () => {
 
     return (
         <div className="flex flex-col lg:flex-row gap-8 p-6 justify-center">
-            {/* Left: Dropdown + Student List */}
+            {/* LEFT: Course Dropdown and Student List */}
             <div className="w-full lg:w-1/2 border p-4 rounded shadow bg-white">
                 <select
                     className="w-full border px-3 py-2 rounded mb-4"
@@ -66,15 +84,11 @@ const ManageStudents = () => {
                     onChange={(e) => setSelectedClassId(e.target.value)}
                 >
                     <option value="">Select Class</option>
-                    {Array.isArray(classes) ? (
-                        classes.map((cls) => (
-                            <option key={cls.CourseID} value={cls.CourseID}>
-                                {cls.CourseName}
-                            </option>
-                        ))
-                    ) : (
-                        <option disabled>Error loading classes</option>
-                    )}
+                    {classes.map((cls) => (
+                        <option key={cls.Course_ID} value={cls.Course_ID}>
+                            {cls.CourseName}
+                        </option>
+                    ))}
                 </select>
 
                 <h2 className="text-lg font-semibold mb-2">Students in Class</h2>
@@ -91,18 +105,10 @@ const ManageStudents = () => {
                 </ul>
             </div>
 
-            {/* Right: Add Student Form */}
+            {/* RIGHT: Add Student Form */}
             <div className="w-full lg:w-1/2 border p-6 rounded shadow bg-white">
                 <h2 className="text-xl font-semibold mb-4">Add Student</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <input
-                        type="number"
-                        placeholder="User ID"
-                        value={form.UserID}
-                        onChange={(e) => setForm({ ...form, UserID: e.target.value })}
-                        className="w-full border px-3 py-2 rounded"
-                        required
-                    />
                     <input
                         type="text"
                         placeholder="First Name"
@@ -127,11 +133,12 @@ const ManageStudents = () => {
                         className="w-full border px-3 py-2 rounded"
                         required
                     />
-                    <button
-                        type="submit"
-                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                    >
+                    <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                         Add Student
+                    </button>
+                    <br></br>
+                    <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        Add File
                     </button>
                     {message && <p className="text-sm text-green-600">{message}</p>}
                 </form>

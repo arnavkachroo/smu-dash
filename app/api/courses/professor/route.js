@@ -4,6 +4,7 @@ import { authOptions } from "@/app/api/auth/authOptions.js";
 
 const prisma = new PrismaClient();
 
+// GET: Get all courses where the current professor is assigned
 export async function GET() {
   const session = await getServerSession(authOptions);
   console.log("🧾 SESSION:", session);
@@ -16,15 +17,17 @@ export async function GET() {
     const userid = session.user.id;
     console.log("👤 USER ID:", userid);
 
-    const query = `SELECT DISTINCT c.CourseName FROM Courses c 
-      INNER JOIN Groups g ON c.Course_ID = g.Course_ID 
-      INNER JOIN GroupMembers gm ON g.Group_ID = gm.Group_ID 
-      INNER JOIN Users u ON u.UserID = gm.Student_ID 
-      WHERE u.userID = ${userid};`;
+    const classes = await prisma.courses.findMany({
+      where: {
+        ProfessorID: userid,
+      },
+      select: {
+        Course_ID: true,
+        CourseName: true,
+      },
+    });
 
-    const classes = await prisma.$queryRawUnsafe(query);
-    console.log("📘 Classes found:", classes);
-
+    console.log("📘 Professor's Courses:", classes);
     return Response.json(classes, { status: 200 });
   } catch (error) {
     console.error("❌ Query error:", error);
@@ -32,6 +35,7 @@ export async function GET() {
   }
 }
 
+// POST: Add a new course assigned to the current professor
 export async function POST(req) {
   const session = await getServerSession(authOptions);
   if (!session) {
@@ -40,23 +44,24 @@ export async function POST(req) {
 
   try {
     const body = await req.json();
-    const { studentName, studentEmail } = body;
+    const { courseName } = body;
 
-    if (!studentName || !studentEmail) {
-      return Response.json({ error: "Missing fields" }, { status: 400 });
+    if (!courseName) {
+      return Response.json({ error: "Missing course name" }, { status: 400 });
     }
 
-    const newStudent = await prisma.users.create({
+    const course = await prisma.courses.create({
       data: {
-        Name: studentName,
-        Email: studentEmail,
-        Role: "STUDENT",
+        CourseName: courseName,
+        CourseCode: null, // Optional — or generate a placeholder if needed
+        ProfessorID: session.user.id,
       },
     });
 
-    return Response.json({ message: "Student added", student: newStudent }, { status: 201 });
-  } catch (error) {
-    console.error("❌ Failed to add student:", error);
-    return Response.json({ error: "Failed to add student" }, { status: 500 });
+
+    return Response.json({ message: "Course added", course }, { status: 201 });
+  } catch (err) {
+    console.error("❌ POST Error:", err);
+    return Response.json({ error: "Failed to add course", details: err.message }, { status: 500 });
   }
 }

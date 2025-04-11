@@ -32,12 +32,10 @@ const ProfessorDashboard = () => {
 
   return (
     <div className="min-h-screen pt-16">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold">Welcome, {session.user.name}!</h2>
-          </div>
-          <div>
-            <Image src="/SMU.png" alt="SMU Logo" width={200} height={100} />
-          </div>
+      <div className="text-center">
+        <h2 className="text-2xl font-bold">Welcome, {session.user.name}!</h2>
+      </div>
+
 
       {/* Main Dashboard */}
       <h1 className="text-4xl font-bold mb-6 text-left">Dashboard</h1>

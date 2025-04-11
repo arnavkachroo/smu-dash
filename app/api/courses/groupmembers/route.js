@@ -12,28 +12,34 @@ export async function GET(req) {
 
   const { searchParams } = new URL(req.url);
   const courseId = searchParams.get("courseId");
+  const groupId = searchParams.get("groupId");
 
   try {
-    if (courseId) {
-      // Fetch all students in the course
+    if (courseId && groupId) {
       const students = await prisma.$queryRawUnsafe(`
         SELECT DISTINCT u.UserID, u.FirstName, u.LastName, u.Email
         FROM Users u
         INNER JOIN GroupMembers gm ON u.UserID = gm.Student_ID
         INNER JOIN Groups g ON gm.Group_ID = g.Group_ID
-        WHERE g.Course_ID = ${parseInt(courseId)};
+        WHERE g.Course_ID = ${parseInt(courseId)} AND g.Group_ID = ${parseInt(groupId)};
       `);
-
       return Response.json(students, { status: 200 });
+    } else if (courseId) {
+      const groups = await prisma.groups.findMany({
+        where: { Course_ID: parseInt(courseId) },
+        select: {
+          Group_ID: true,
+          GroupName: true,
+        },
+      });
+      return Response.json(groups, { status: 200 });
     } else {
-      // Fetch all available courses
       const classes = await prisma.courses.findMany({
         select: {
           Course_ID: true,
           CourseName: true,
         },
       });
-
       return Response.json(classes, { status: 200 });
     }
   } catch (err) {
@@ -50,9 +56,9 @@ export async function POST(req) {
 
   try {
     const body = await req.json();
-    const { FirstName, LastName, Email, Course_ID } = body;
+    const { FirstName, LastName, Email, groupId } = body;
 
-    if (!FirstName?.trim() || !LastName?.trim() || !Email?.trim() || !Course_ID) {
+    if (!FirstName?.trim() || !LastName?.trim() || !Email?.trim() || !groupId) {
       return Response.json({ error: "Missing required fields" }, { status: 400 });
     }
 
@@ -65,12 +71,18 @@ export async function POST(req) {
       },
     });
 
-    // Optional: assign to a default group within the course or log for later
+    const groupAssignment = await prisma.groupMembers.create({
+      data: {
+        Student_ID: student.UserID,
+        Group_ID: parseInt(groupId),
+      },
+    });
 
     return Response.json(
       {
-        message: "Student created",
+        message: "Student created and assigned to group",
         student,
+        groupAssignment,
       },
       { status: 201 }
     );
