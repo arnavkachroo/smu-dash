@@ -61,7 +61,7 @@ const ManageGroups = () => {
         };
 
         fetchStudents();
-    }, [selectedGroupId]);
+    }, [selectedGroupId, selectedClassId]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

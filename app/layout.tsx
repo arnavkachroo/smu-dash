@@ -1,9 +1,9 @@
 "use client";
 
-//import { metadata } from "@/app/metadata"; // Import metadata from separate file
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,9 +23,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Google Analytics */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-CQ22QS4Y5X"></script>
-        <script
+        {/* Google Analytics using next/script */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-CQ22QS4Y5X"
+          strategy="afterInteractive"
+        />
+        <Script
+          id="gtag-init"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               window.dataLayer = window.dataLayer || [];
