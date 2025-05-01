@@ -26,7 +26,7 @@ export async function GET(req) {
 
       return Response.json(students, { status: 200 });
     } else {
-      // Get all available classes for the user
+      // Get all available classes for student
       const userid = session.user.id;
       const query = `SELECT DISTINCT c.CourseName FROM Courses c
 inner join Groups g on c.Course_ID = g.Course_ID

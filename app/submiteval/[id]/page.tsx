@@ -1,16 +1,15 @@
 'use client';
+
 import SubmitEval from "@/app/components/SubmitEval.js";
 import Navbar from "@/app/components/StudentNavbar.js";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { use } from "react";
-  
-export default  function EvaluationPage({params}: {params: Promise<{ id: string }>}) {
+
+export default function EvaluationPage({ params }: { params: { id: string } }) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { data: session, status } = useSession();
     const router = useRouter();
-    const { id } = use(params);
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -27,7 +26,7 @@ export default  function EvaluationPage({params}: {params: Promise<{ id: string 
             <br />
             <br />
             <br />
-            <SubmitEval params={id} />
+            <SubmitEval params={params} />
         </div>
     );
 }

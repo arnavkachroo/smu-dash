@@ -22,7 +22,7 @@ const ProfessorDashboard = () => {
   }, [status, router]);
 
   useEffect(() => {
-    axios.get("/api/courses").then((res) => setCourses(res.data));
+    axios.get("/api/courses/professor").then((res) => setCourses(res.data));
     axios.get("/api/evaluations").then((res) => setDueDates(res.data));
   }, []);
 
