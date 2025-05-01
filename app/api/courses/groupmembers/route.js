@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 export async function GET(req) {
   const session = await getServerSession(authOptions);
-  if (!session) {
+  if (!session || session.user.role !== "professor") {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -26,7 +26,9 @@ export async function GET(req) {
       return Response.json(students, { status: 200 });
     } else if (courseId) {
       const groups = await prisma.groups.findMany({
-        where: { Course_ID: parseInt(courseId) },
+        where: {
+          Course_ID: parseInt(courseId),
+        },
         select: {
           Group_ID: true,
           GroupName: true,
@@ -34,7 +36,11 @@ export async function GET(req) {
       });
       return Response.json(groups, { status: 200 });
     } else {
+      // ✅ Filter by professor only
       const classes = await prisma.courses.findMany({
+        where: {
+          ProfessorID: session.user.id,
+        },
         select: {
           Course_ID: true,
           CourseName: true,
@@ -50,7 +56,7 @@ export async function GET(req) {
 
 export async function POST(req) {
   const session = await getServerSession(authOptions);
-  if (!session) {
+  if (!session || session.user.role !== "professor") {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
