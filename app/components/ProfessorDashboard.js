@@ -64,10 +64,8 @@ const ProfessorDashboard = () => {
             {dueDates.length > 0 ? (
               dueDates.map((item) => (
                 <p key={item.scheduled_eval_id}>
-                  <Link href={`/submiteval/${item.scheduled_eval_id}`} className="text-blue-600 underline">
                     {item.CourseName} - {item.SprintLabel || "Sprint"} -{" "}
                     {item.DueDate ? item.DueDate.split("T")[0] : "No Due Date"}
-                  </Link>
                 </p>
               ))
             ) : (

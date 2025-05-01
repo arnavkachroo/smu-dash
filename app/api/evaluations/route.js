@@ -10,7 +10,7 @@ export async function GET() {
   if (!session) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
-
+  if(session.user.role == "student") {
   try {
     const userid = session.user.id;
     const query = `SELECT DISTINCT se.scheduled_eval_id, c.Course_ID, c.CourseName, DATE(se.ScheduledDate_Due) AS DueDate FROM ScheduledEvaluation se
@@ -27,3 +27,19 @@ Order by DueDate;`;
     return Response.json({ error: "Failed to fetch evaluations" }, { status: 500 });
   }
 }
+  else if(session.user.role == "professor") {
+    try {
+      const userid = session.user.id;
+      const query = `SELECT DISTINCT se.scheduled_eval_id, c.Course_ID, c.CourseName, DATE(se.ScheduledDate_Due) AS DueDate FROM ScheduledEvaluation se
+INNER JOIN Courses c on se.Course_ID = c.Course_ID
+inner join Groups g on c.Course_ID = g.Course_ID
+inner join Users u on u.userID = c.ProfessorID
+WHERE u.userID = ${userid}
+Order by DueDate;`;
+      const evaluations = await prisma.$queryRawUnsafe(query); // Adjust model name as per schema
+      return Response.json(evaluations, { status: 200 });
+    } catch (error) {
+      console.log(error);
+      return Response.json({ error: "Failed to fetch evaluations" }, { status: 500 });
+    }
+}}
