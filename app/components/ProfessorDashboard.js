@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Calendar from "react-calendar";
-import Image from "next/image";
 import Link from "next/link";
 import "react-calendar/dist/Calendar.css";
 
