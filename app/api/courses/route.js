@@ -26,13 +26,15 @@ export async function GET(req) {
 
       return Response.json(students, { status: 200 });
     } else {
-      // Get all available classes
-      const classes = await prisma.courses.findMany({
-        select: {
-          Course_ID: true,
-          CourseName: true,
-        },
-      });
+      // Get all available classes for the user
+      const userid = session.user.id;
+      const query = `SELECT DISTINCT c.CourseName FROM Courses c
+inner join Groups g on c.Course_ID = g.Course_ID
+inner join GroupMembers gm on g.Group_ID = gm.Group_ID
+inner join Users u on gm.Student_ID = u.UserID
+WHERE u.userID = ${userid}
+Order by c.CourseName ASC;`;
+      const classes = await prisma.$queryRawUnsafe(query);
 
       return Response.json(classes, { status: 200 });
     }
