@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 export async function GET(req) {
   const session = await getServerSession(authOptions);
-  if (!session) {
+  if (!session || session.user.role !== "professor") {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -15,7 +15,18 @@ export async function GET(req) {
 
   try {
     if (courseId) {
-      // Fetch all students in the course
+      // ✅ Verify professor owns the course
+      const course = await prisma.courses.findFirst({
+        where: {
+          Course_ID: parseInt(courseId),
+          ProfessorID: session.user.id,
+        },
+      });
+
+      if (!course) {
+        return Response.json({ error: "Course not found or unauthorized" }, { status: 403 });
+      }
+
       const students = await prisma.$queryRawUnsafe(`
         SELECT DISTINCT u.UserID, u.FirstName, u.LastName, u.Email
         FROM Users u
@@ -26,8 +37,11 @@ export async function GET(req) {
 
       return Response.json(students, { status: 200 });
     } else {
-      // Fetch all available courses
+      // ✅ Only return courses taught by this professor
       const classes = await prisma.courses.findMany({
+        where: {
+          ProfessorID: session.user.id,
+        },
         select: {
           Course_ID: true,
           CourseName: true,
@@ -44,7 +58,7 @@ export async function GET(req) {
 
 export async function POST(req) {
   const session = await getServerSession(authOptions);
-  if (!session) {
+  if (!session || session.user.role !== "professor") {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -56,6 +70,18 @@ export async function POST(req) {
       return Response.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    // ✅ Ensure the professor owns the course
+    const course = await prisma.courses.findFirst({
+      where: {
+        Course_ID: parseInt(Course_ID),
+        ProfessorID: session.user.id,
+      },
+    });
+
+    if (!course) {
+      return Response.json({ error: "Unauthorized to add student to this course" }, { status: 403 });
+    }
+
     const student = await prisma.users.create({
       data: {
         FirstName,
@@ -64,8 +90,6 @@ export async function POST(req) {
         Role: "student",
       },
     });
-
-    // Optional: assign to a default group within the course or log for later
 
     return Response.json(
       {

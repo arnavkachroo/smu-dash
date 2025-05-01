@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 export async function GET(req) {
   const session = await getServerSession(authOptions);
-  if (!session) {
+  if (!session || session.user.role !== "professor") {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -15,7 +15,18 @@ export async function GET(req) {
 
   try {
     if (courseId) {
-      // Get students in selected course
+      // Get students in selected course (professor owns this course)
+      const course = await prisma.courses.findUnique({
+        where: {
+          Course_ID: parseInt(courseId),
+          ProfessorID: session.user.id,
+        },
+      });
+
+      if (!course) {
+        return Response.json({ error: "Course not found or access denied" }, { status: 403 });
+      }
+
       const students = await prisma.$queryRawUnsafe(`
         SELECT DISTINCT u.UserID, u.FirstName, u.LastName, u.Email
         FROM Users u
@@ -26,8 +37,11 @@ export async function GET(req) {
 
       return Response.json(students, { status: 200 });
     } else {
-      // Get all available classes
+      // Get only professor's own classes
       const classes = await prisma.courses.findMany({
+        where: {
+          ProfessorID: session.user.id,
+        },
         select: {
           Course_ID: true,
           CourseName: true,
@@ -44,7 +58,7 @@ export async function GET(req) {
 
 export async function POST(req) {
   const session = await getServerSession(authOptions);
-  if (!session) {
+  if (!session || session.user.role !== "professor") {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -62,7 +76,7 @@ export async function POST(req) {
         FirstName,
         LastName,
         Email,
-        Role: "STUDENT", // if you use roles
+        Role: "STUDENT",
       },
     });
 
