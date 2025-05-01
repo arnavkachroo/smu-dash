@@ -74,7 +74,7 @@ export default function EvaluationForm({ params }) {
             body: JSON.stringify({ ratings }),
         });
 
-        router.push('/');
+        router.push('/studentdash');
     };
 
     return (
