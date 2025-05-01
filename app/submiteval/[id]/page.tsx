@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 'use client';
 
 import SubmitEval from "@/app/components/SubmitEval.js";
@@ -7,7 +10,6 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 const EvaluationPage = (props: any) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { params } = props as { params: { id: string } };
   const { data: session, status } = useSession();
   const router = useRouter();
