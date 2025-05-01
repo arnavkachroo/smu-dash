@@ -8,7 +8,7 @@
     ],
     "allowJs": true,
     "skipLibCheck": true,
-    //"types": ["next", "next-auth"],
+    "types": [],
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
