@@ -19,6 +19,7 @@ const Navbar = () => (
         <Link href="/manageclasses" className="hover:text-blue-600">Manage Classes</Link>
         <Link href="/managestudents" className="hover:text-blue-600">Manage Students</Link>
         <Link href="/managegroups" className="hover:text-blue-600">Manage Groups</Link>
+        <Link href="/createEvaluation" className="hover:text-blue-600">Manage Evaluations</Link>
       </div>
     </div>
   </nav>
